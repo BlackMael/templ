@@ -903,8 +903,6 @@ func (ca ConditionalAttribute) Write(w io.Writer, indent int) error {
 				return err
 			}
 		}
-	} else {
-		fmt.Println("// No else if blocks found!?")
 	}
 	if len(ca.Else) == 0 {
 		return nil
