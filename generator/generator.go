@@ -895,6 +895,7 @@ func copyAttributes(attr []parser.Attribute) []parser.Attribute {
 	for i, a := range attr {
 		if c, ok := a.(parser.ConditionalAttribute); ok {
 			c.Then = copyAttributes(c.Then)
+			c.ElseIfs = copyElseIfs(c.ElseIfs)
 			c.Else = copyAttributes(c.Else)
 			o[i] = c
 			continue
@@ -902,6 +903,15 @@ func copyAttributes(attr []parser.Attribute) []parser.Attribute {
 		o[i] = a
 	}
 	return o
+}
+
+func copyElseIfs(attr []parser.ElseIfAttribute) []parser.ElseIfAttribute {
+	clone := make([]parser.ElseIfAttribute, len(attr))
+	copy(clone, attr)
+	for _, c := range clone {
+		c.Then = copyAttributes(c.Then)
+	}
+	return clone
 }
 
 func (g *generator) writeElement(indentLevel int, n parser.Element) (err error) {
@@ -1249,6 +1259,29 @@ func (g *generator) writeConditionalAttribute(indentLevel int, elementName strin
 			return err
 		}
 		indentLevel--
+	}
+	if len(attr.ElseIfs) > 0 {
+		// } else if ...
+		for _, elseIf := range attr.ElseIfs {
+			if _, err := g.w.WriteIndent(indentLevel, "} else if "); err != nil {
+				return err
+			}
+			// x == y
+			if r, err = g.w.Write(elseIf.Expression.Value); err != nil {
+				return err
+			}
+			// {
+			if _, err := g.w.Write(` {` + "\n"); err != nil {
+				return err
+			}
+			{
+				indentLevel++
+				if err = g.writeElementAttributes(indentLevel, elementName, elseIf.Then); err != nil {
+					return err
+				}
+				indentLevel--
+			}
+		}
 	}
 	if len(attr.Else) > 0 {
 		// } else {

@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/a-h/parse"
 	"github.com/a-h/templ/parser/v2/goexpression"
@@ -23,8 +22,6 @@ func (conditionalAttributeParser) Parse(pi *parse.Input) (r ConditionalAttribute
 		pi.Seek(start)
 		return
 	}
-
-	p, _ := pi.Peek(15)
 
 	// Parse the Go if expression.
 	if r.Expression, err = parseGo("if attribute", pi, goexpression.If); err != nil {
@@ -57,21 +54,6 @@ func (conditionalAttributeParser) Parse(pi *parse.Input) (r ConditionalAttribute
 		return
 	}
 
-	if len(r.ElseIfs) > 0 {
-		fmt.Printf("\n*** We have Else Ifs: %d\n", len(r.ElseIfs))
-
-		for _, elseIf := range r.ElseIfs {
-			fmt.Printf("  > %s\n", elseIf.Expression.Value)
-
-			for _, attr := range elseIf.Then {
-				// write attr to std out
-				_ = attr.Write(os.Stdout, 1)
-			}
-
-			fmt.Println("\n        ======== == = =  =")
-		}
-	}
-
 	// Read the optional 'Else' Nodes.
 	if r.Else, ok, err = attributeElseExpression.Parse(pi); err != nil {
 		return
@@ -83,10 +65,6 @@ func (conditionalAttributeParser) Parse(pi *parse.Input) (r ConditionalAttribute
 
 	// Clear any optional whitespace.
 	_, _, _ = parse.OptionalWhitespace.Parse(pi)
-
-	fmt.Printf("\nPEEK: \"%s\"", p)
-	p, _ = pi.Peek(15)
-	fmt.Printf("\n  => \"%s\"\n", p)
 
 	// Read the required closing brace.
 	if _, ok, err = closeBraceWithOptionalPadding.Parse(pi); err != nil || !ok {
