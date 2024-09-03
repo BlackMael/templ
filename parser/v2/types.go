@@ -835,7 +835,13 @@ func (sa SpreadAttributes) Write(w io.Writer, indent int) error {
 type ConditionalAttribute struct {
 	Expression Expression
 	Then       []Attribute
+	ElseIfs    []ElseIfAttribute
 	Else       []Attribute
+}
+
+type ElseIfAttribute struct {
+	Expression Expression
+	Then       []Attribute
 }
 
 func (ca ConditionalAttribute) String() string {
@@ -868,6 +874,37 @@ func (ca ConditionalAttribute) Write(w io.Writer, indent int) error {
 	}
 	if err := writeIndent(w, indent, "}"); err != nil {
 		return err
+	}
+	if len(ca.ElseIfs) > 0 {
+		// Write the else if blocks.
+		for _, elseIf := range ca.ElseIfs {
+			if _, err := w.Write([]byte(" else if ")); err != nil {
+				return err
+			}
+			if _, err := w.Write([]byte(elseIf.Expression.Value)); err != nil {
+				return err
+			}
+			if _, err := w.Write([]byte(" {\n")); err != nil {
+				return err
+			}
+			{
+				indent++
+				for _, attr := range elseIf.Then {
+					if err := attr.Write(w, indent); err != nil {
+						return err
+					}
+					if _, err := w.Write([]byte("\n")); err != nil {
+						return err
+					}
+				}
+				indent--
+			}
+			if err := writeIndent(w, indent, "}"); err != nil {
+				return err
+			}
+		}
+	} else {
+		fmt.Println("// No else if blocks found!?")
 	}
 	if len(ca.Else) == 0 {
 		return nil

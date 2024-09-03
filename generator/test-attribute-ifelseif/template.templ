@@ -1,0 +1,44 @@
+package ifelseif
+
+templ render(d data) {
+	<!-- if block should be used -->
+	<div
+		if true {
+			class="t1-if-block"
+		}
+	>
+		{ "if" }
+	</div>
+	<!-- else block should be used -->
+	<div
+		if d.IsTrue() {
+			class="t4-if-block"
+		} else {
+			class="t4-else-block"
+		}
+	>
+		{ "if else" }
+	</div>
+	<!-- else if block should be used -->
+	<div
+		if d.IsTrue() {
+			class="t2-if-block"
+		} else if true || d.IsTrue() {
+			class="t2-else-if-block"
+		}
+	>
+		{ "if else if" }
+	</div>
+	<!-- else block should be used -->
+	<div
+		if d.IsTrue() {
+			class="t3-if-block"
+		} else if d.IsTrue() {
+			class="t3-else-if-block"
+		} else {
+			class="t3-else-block"
+		}
+	>
+		{ "if else if else" }
+	</div>
+}
